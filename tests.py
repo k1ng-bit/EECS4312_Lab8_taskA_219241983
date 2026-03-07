@@ -197,3 +197,60 @@ def test_emptyList():       # testing when meeting duration is longer than any g
     )
 
     assert out == []
+
+def test_n_max():       # only first n slots returned if there are more than n available time slots
+    day = date(2026, 2, 24)
+    working = TimeWindow(time(9, 0), time(17, 0))
+    duration = timedelta(minutes=30)
+
+    out = suggest_slots(
+        day=day,
+        working_hours=working,
+        busy_intervals=[],
+        duration=duration,
+        n=3,
+        buffer=timedelta(0),
+        candidate_window=None
+    )
+
+    assert len(out) == 3
+
+def test_withinWorkingWindow():       #  slots should be within working hours window
+    day = date(2026, 2, 24)
+    working = TimeWindow(time(9, 0), time(17, 0))
+    duration = timedelta(hours=2)
+
+    out = suggest_slots(
+        day=day,
+        working_hours=working,
+        busy_intervals=[],
+        duration=duration,
+        n=5,
+        buffer=timedelta(0),
+        candidate_window=None
+    )
+
+    for slot in out:
+        assert slot.start_time >= time(9, 0)
+        assert (datetime.combine(day, slot.start_time) + duration).time() <= time(17, 0)
+
+def test_candidate_window():       # slots must be within candidate window if provided
+    day = date(2026, 2, 24)
+    working = TimeWindow(time(9, 0), time(17, 0))
+    candidate = TimeWindow(time(13, 0), time(15, 0))
+    duration = timedelta(hours=1)
+
+    out = suggest_slots(
+        day=day,
+        working_hours=working,
+        busy_intervals=[],
+        duration=duration,
+        n=5,
+        buffer=timedelta(0),
+        candidate_window=candidate
+    )
+
+    for slot in out:
+        assert slot.start_time >= time(13, 0)
+        assert (datetime.combine(day, slot.start_time) + duration).time() <= time(15, 0)
+
