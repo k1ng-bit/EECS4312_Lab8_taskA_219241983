@@ -86,6 +86,23 @@ class InfeasibleSchedule(Exception):
     """Raised when no valid slots can be produced (if required by handout)."""
     pass
 
+#----------------- Helper Function --------------
+def merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:  # incase two busy intervals are overlapping then merge
+    if not intervals:
+        return []
+
+    intervals = sorted(intervals)
+    merged = [intervals[0]]
+
+    for start, end in intervals[1:]:
+        last_start, last_end = merged[-1]
+
+        if start <= last_end:
+            merged[-1] = (last_start, max(last_end, end))
+        else:
+            merged.append((start, end))
+
+    return merged
 
 # ---------------- Core Function ----------------
 
@@ -124,5 +141,73 @@ def suggest_slots(
     ##################################################################
     # TODO: Implement as per lab handout requirements and constraints.
     ##################################################################
-    
-    raise NotImplementedError("suggest_slots has not been implemented yet")
+
+    if working_hours.start >= working_hours.end:        #if start<end for working hours window constraint
+        raise ValueError("working_hours Start Time must be lesser than the End Time !")
+
+    if duration <= timedelta(0):                # duration must not be less than or wqual to 0
+        raise ValueError("duration must be greater than 0 !")
+
+    if n < 0:                                   # n must be greater than equal to 0
+        raise ValueError("n must be >= 0 !")
+
+    if buffer < timedelta(0):                   # handle the buffer time consraint
+        raise ValueError("buffer must be >= 0 !")
+
+    if candidate_window is not None and candidate_window.start >= candidate_window.end:
+        raise ValueError("candidate_window Start time must be earlier than End time !")
+
+    for interval in busy_intervals:             #checking for any error in the busy intervals list
+        if interval.start >= interval.end:
+            raise ValueError("busy interval start must be earlier than end")
+
+    if n == 0:
+        return []
+
+    def combine(t: time) -> datetime:
+        return datetime.combine(day, t)
+
+    work_start = combine(working_hours.start)
+    work_end = combine(working_hours.end)
+
+    start_limit = work_start
+    end_limit = work_end
+
+    if candidate_window is not None:
+        start_limit = max(start_limit, combine(candidate_window.start))
+        end_limit = min(end_limit, combine(candidate_window.end))
+
+    if start_limit >= end_limit:
+        return []
+
+    latest_start = end_limit - duration
+    if latest_start < start_limit:
+        return []
+
+    busy_ranges = []
+    for interval in busy_intervals:
+        start_dt = combine(interval.start) - buffer
+        end_dt = combine(interval.end) + buffer
+        busy_ranges.append((start_dt, end_dt))
+
+    merged_busy = merge_intervals(busy_ranges)
+
+    slots = []
+    step = timedelta(minutes=1)
+    current = start_limit
+
+    while current <= latest_start and len(slots) < n:
+        slot_end = current + duration
+        conflict = False
+
+        for busy_start, busy_end in merged_busy:
+            if current < busy_end and busy_start < slot_end:
+                conflict = True
+                break
+
+        if not conflict:
+            slots.append(Slot(start_time=current.time()))
+
+        current += step
+
+    return slots
