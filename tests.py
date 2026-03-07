@@ -179,3 +179,21 @@ def test_a5_buffer_eliminates_small_gaps():
 #################################################################################
 # Add your own additional tests here to cover more cases and edge cases as needed.
 #################################################################################
+
+def test_emptyList():       # testing when meeting duration is longer than any gap available so empty list is returned
+    day = date(2026, 2, 24)
+    working = TimeWindow(time(9, 0), time(10, 0))
+    busy = [BusyInterval(time(9, 20), time(9, 40))]
+    duration = timedelta(minutes=25)
+
+    out = suggest_slots(
+        day=day,
+        working_hours=working,
+        busy_intervals=busy,
+        duration=duration,
+        n=10,
+        buffer=timedelta(0),
+        candidate_window=None
+    )
+
+    assert out == []

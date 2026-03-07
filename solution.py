@@ -161,19 +161,19 @@ def suggest_slots(
         if interval.start >= interval.end:
             raise ValueError("busy interval start must be earlier than end")
 
-    if n == 0:
+    if n == 0:                          # if n is 0, then empty list returned
         return []
 
     def combine(t: time) -> datetime:
         return datetime.combine(day, t)
 
-    work_start = combine(working_hours.start)
+    work_start = combine(working_hours.start)       #working hour window
     work_end = combine(working_hours.end)
 
     start_limit = work_start
     end_limit = work_end
 
-    if candidate_window is not None:
+    if candidate_window is not None:        #handlling the limits for the returning time slots
         start_limit = max(start_limit, combine(candidate_window.start))
         end_limit = min(end_limit, combine(candidate_window.end))
 
