@@ -86,8 +86,12 @@ class InfeasibleSchedule(Exception):
     """Raised when no valid slots can be produced (if required by handout)."""
     pass
 
+
+
+Slot_gran = timedelta(minutes=1)            # this is the slot granularity increment of 1 min
+
 #----------------- Helper Function --------------
-def merge_intervals(intervals: List[Tuple[int, int]]) -> List[Tuple[int, int]]:  # incase two busy intervals are overlapping then merge
+def merge_intervals(intervals: List[Tuple[datetime, datetime]]) -> List[Tuple[datetime, datetime]]:  # incase two busy intervals are overlapping then merge
     if not intervals:
         return []
 
@@ -142,6 +146,8 @@ def suggest_slots(
     # TODO: Implement as per lab handout requirements and constraints.
     ##################################################################
 
+    # ----- this is the validation for any invalid input provided.
+
     if working_hours.start >= working_hours.end:        #if start<end for working hours window constraint
         raise ValueError("working_hours Start Time must be lesser than the End Time !")
 
@@ -167,6 +173,8 @@ def suggest_slots(
     def combine(t: time) -> datetime:
         return datetime.combine(day, t)
 
+
+    # ----- this is to start seatch within the working hour window
     work_start = combine(working_hours.start)       #working hour window
     work_end = combine(working_hours.end)
 
@@ -184,16 +192,22 @@ def suggest_slots(
     if latest_start < start_limit:
         return []
 
-    busy_ranges = []
+    # ----- normalizing the busy intervals
+    busy_ranges: List[Tuple[datetime, datetime]] = []
     for interval in busy_intervals:
         start_dt = combine(interval.start) - buffer
         end_dt = combine(interval.end) + buffer
-        busy_ranges.append((start_dt, end_dt))
+
+        # clipped value too the starting of the window
+        clipped_start = max(start_dt, start_limit)
+        clipped_end = min(end_dt, end_limit)
+        if clipped_start < clipped_end:
+            busy_ranges.append((clipped_start, clipped_end))
 
     merged_busy = merge_intervals(busy_ranges)
 
-    slots = []
-    step = timedelta(minutes=1)
+    # ----- slot generation logic
+    slots: List[Slot] = []
     current = start_limit
 
     while current <= latest_start and len(slots) < n:
@@ -208,6 +222,6 @@ def suggest_slots(
         if not conflict:
             slots.append(Slot(start_time=current.time()))
 
-        current += step
+        current += Slot_gran
 
     return slots
