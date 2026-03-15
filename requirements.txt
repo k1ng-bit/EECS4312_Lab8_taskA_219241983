@@ -1,0 +1,210 @@
+## 1. Problem Understanding - Describe the problem your system solves.
+System purpose:
+
+The appointment slot recommender must suggest N valid meeting time slots within the user's working hours, while taking into account the duration of the meeting, user's busy intervals, buffer times and an optional candidate window for the meetings. The appointment slot recommender must output the N time slots deterministic and ordered by time and must provide information incase of failure or error.
+
+Inputs to the system:
+- working_hours
+type: TimeWindow,  format: TimeWindow(start: time, end: time) 
+Assumption: non-wrapping window where start has to be less than end.
+
+- busy_intervals
+type: List[BusyInterval]  , format: BusyInterval(start: time, end: time)
+Invariant: Start < end
+
+- duration
+type: timedelta (datetime),  format: timedelta(hours = , minutes = )    
+duration must be greater than 0
+
+- buffer
+type: timedelta , format : timedelta(0)
+
+- day
+type: datetime , format: calendar day
+
+- n
+type: int
+
+- candidate_window - optional
+type: TimeWindow
+
+
+Outputs produced by the system:
+
+- List[Slot] : A list of time slots that are sorted by the start_time. If not time slots available, then an empty list is returned
+The slots suggested must also follow constraints and invariant such as the slots must be within working hours and must not overlap busy hours or buffers.
+
+
+Primary goal of the system:
+
+
+
+---
+
+## 2. Assumptions - List assumptions about the environment, users, or
+inputs.
+
+A1: Working hours should have a start time that is less than the end time
+A2: Busy intervals can be unsorted or may overlap
+A3: n must be greater than or equal to 0
+A4: time slots are generated at 1 minute granularity and so increment at 1 min
+A5: If candidate window is provided then slots must lie inside of that window only.
+A6: buffer time must be greater than or equal to 0
+
+
+---
+
+
+## 3. Functional Requirements - Describe the main behaviors the system
+must perform.
+
+FR1: The system shall accept working hours defined by the TimeWindow
+FR2: The system shall accept a list of busy intervals even if they are unsorted or overlapping.
+FR3: The system shall accept a required meeting duration
+FR4: The system shall accept an optional buffer time between meetings
+FR5: The system shall accept a optional candidate window so that the suggested slots fall under that window strictly.
+FR6: The system shall return a maximum of N suggested time slots in a chronologically sorted order
+FR7: The system shall ensure that the suggested slots do not overlap the user's busy intervals.
+FR8: The system must ensure that the suggested slots lie within working hours defined by the TimeWindow.
+FR9: The system shall return an empty list if no slots are possible.
+FR10: The system shall take into account the user defined buffer_time when calculating available time slots. 
+FR11: The system shall produce deterministic output for similar inputs
+FR12: The system must combine any overlapping busy intervals before checking for any conflicts
+FR13: The system must not provide more than one sentence explanation to explain the failure cause
+
+
+---
+
+## 4. System Constraints - Constraints are conditions the system must
+always respect. Each constraint should reference the persona attribute
+it originates from.
+C1: The system must return valid time slots in a chronological way ordered by start_time
+Derived from persona attribute: Jane - Prefers ordering of system outputs
+C2: The system must return slots that do not conflict with busy intervals or buffer times by itself without requiring any manual changes.
+Derived from persona attribute: Jane - User expects system to resolve any conflicts automatically
+C3: The system must behave deterministically when similar inputs are provided.
+Derived from persona attribute: Jane - User dislikes when system behaves inconsistently when similar inputs are given
+C4: The system must handle and explain in one sentence the error incase of failure due to invalid values entered, negative values, or conflicting intervals or empty lists outputted.
+Derived from persona attribute: Mo - Prefers explanation for failure and dislikes silent failure.
+C5: If no valid slot exists, the system must return an empty list rather than silently behaviour or invalid output
+Derived from persona attribute: Mo - dislikes silent failures or dropped requests
+C6: The system should provide one sentence to explain why a certain output was rejected or why it was accepted.
+Derived from persona attribute: Mo - User stresses when outputs appear arbitrary
+
+
+---
+## 5. Acceptance Criteria - Acceptance criteria define how system
+behavior will be verified.
+
+AC1:
+Given working_hours 9:00 to 17:00 and no busy intervals are provided by the user
+When the system is recommending appointment time slots
+Then the system's recommended time slot list begins from 9:00 and the next outputs are chronologically sorted
+Linked Constraint ID(s): C1
+
+AC2:
+Given the same day, working_hours, busy_intervals, duration, buffer_time, candidate_window, and n
+When the system is run twice
+Then both outputs shall be the exact same and in order.
+Linked Constraint ID(s): C1, C5
+
+AC3:
+Given busy intervals 10:30–11:00, 10:00–10:45, 09:30–09:45
+When the system generates slots
+Then no slot returned should overlap the busy intervals even if they are not ordered or are overlapping
+Linked Constraint ID(s): C2, C5
+
+AC4:
+Given working hours 09:00–17:00, candidate window 13:00–15:00, and no busy intervals
+When the system generates slots
+Then every returned slot shall start and finish within the candidate window.
+Linked Constraint ID(s): C2, C5
+
+AC5:
+Given more than N valid time slots are possible
+When the system generates slots
+Then it shall only return the first N slots in a chronological order
+Linked Constraint ID(s): C2, C5
+
+AC6:
+Given an invalid input to the system, such as start times > end times, or values below 0 for meeting duration or N
+When the system generates slots
+Then system must return error, with the error explained in a sentence.
+Linked Constraint ID(s): C6
+
+AC7:
+Given working hours of 9:00-12:00 and busy interval of 9:20-11:40 and meeting duration of 25 minutes
+When the system generates slots
+Then the system must return an empty list, as no time slot is possible or will conflict with the busy interval.
+Linked Constraint ID(s): C2, C3, C4
+
+AC8:
+Given Buffer time interval of 13:00-14:00
+When the system generates slots
+Then the system must make sure that no slots generated conflict with the buffer time intervals.
+
+---
+
+
+## 6. Edge Cases - Describe unusual or boundary situations the system
+must handle.
+EC1: Busy intervals are not sorted or overlapping
+Expected system behavior: System sorts and merges or combines overlapping busy_intervals.
+EC2: Buffer time should remove a valid slot if it is conflicting
+Expected system behavior: if a time slot is conflicting with the buffer time, then it will not be printed and the system will only output the other valid slots.
+EC3: Meeting duration longer than any available gap
+Expected system behavior: If the meeting duration is longer than any available gap, then empty list is printed.
+
+
+---
+## 7. Traceability - Link functional requirements to constraints and
+acceptance criteria. FR → C → AC mapping
+FR1  -> C3 -> AC1
+FR2  -> C2 -> AC3
+FR3  -> C5 -> AC6
+FR4  -> C2 -> AC8
+FR5  -> C2 -> AC4
+FR6  -> C1 -> AC5
+FR7  -> C2 -> AC3
+FR8  -> C1 -> AC1
+FR9  -> C5 -> AC7
+FR10 -> C2 -> AC8
+FR11 -> C3 -> AC2
+FR12 -> C2 -> AC3
+FR13 -> C4 -> AC6
+
+
+Revision Notes:
+
+Revision Note 1
+Requirement updated: A4 - Slot generation will use 1 minute granularity / increments
+Reason: During review of requirements, llm identified that when there is constant slot granularity, the system will not produce deterministic results and can produce
+different outputs for similar values. 
+Action: System will use 1 minute increments when generating slots. 
+Triggered by: LLM feedback
+
+Revision Note 2
+Requirement updated: FR12 - Busy intervals must be normalized before checking for any conflicts
+Reason: In the initial specification, it does say that busy intervals can be unsorted or can overlap, however how it will be handled was not specified
+Action: New requirement for the system to sort and merge the busy interval before checking for available time slots. 
+Triggered by: LLM feedback
+
+Revision Note 3
+Requirement updated: FR10 -  clarifying the buffer times
+Reason: Buffer times were not clarified as to how they should be applied with respect to the busy intervals. Ambiguity in whether buffer was applied
+after or before the busy intervals or could be in between.
+Action: The buffer times can be applied around the busy intervals before checking for available slots.
+Triggered by: LLM feedback
+
+Revision Note 4
+Requirement updated: FR5 - Clarifying ambiguity caused by the candidate window time intervals.
+Reason: initially, it was not specified if the candidate window timings must be within or can be outside the working hour intervals or not.
+Action: The candidate window times, must be within the working hours intervals strictly and the system must output valid slots within the candidate window only.
+Triggered by: LLM feedback
+
+Revision Note 5
+Requirement updated: FR13 - Invalid input handling for the system
+Reason: The original specification there was ambiguity on how exactly the system will handle any invalid inputs and how the error is explained.
+Action: Using python's ValueError function and printing an error message along with it, the system can explain the failures or errors.
+Triggered by: LLM feedback
+
