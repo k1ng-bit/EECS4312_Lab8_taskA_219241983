@@ -1,6 +1,8 @@
 ## Student Name: Daksh Dave
 ## Student ID: 219241983
 
+Lab 8 Prompts:
+
 Prompt #1: 
 {I am implementing an Appointment Slot Recommender in Python, below is the specs, requirements , constraints and acceptance criteria:
 
@@ -1304,4 +1306,302 @@ It matches the intended behavior well, and I would not change the implementation
 }
 
 
+
+
+
+Lab 9 Prompts:
+
+Prompt 1: [          
+
+This is the system description for the system I am trying to build:
+The appointment slot recommender must suggest N valid meeting time slots within the user's working hours, while taking into account the duration of the meeting, user's busy intervals, buffer times and an optional candidate window for the meetings. The appointment slot recommender must output the N time slots deterministic and ordered by time and must provide information incase of failure or error.
+
+These are the persona descriptions provided to me:
+
+PERSONA 1 - Jane Adams (Primary User)
+Context. Busy professional managing daily routines and commitments who relies on
+automation to reduce cognitive load. Jane uses digital tools for medication reminders
+and event registrations and expects them to work reliably without manual oversight.
+Behaviors.
+• Acts quickly and rarely revisits system suggestions.
+• Trusts the system to resolve conflicts and enforce rules automatically.
+• Prefers concise outputs and minimal interaction when making decisions.
+Needs.
+• Predictable and stable ordering of reminders or system decisions.
+• Automatic handling of conflicts (e.g., reminder collisions or waitlist promotion).
+• Limited notification or information overload.
+Pain Points.
+• Receiving too many notifications or duplicate system messages.
+• Systems behave inconsistently in similar situations.
+• Having to manually resolve conflicts or check system correctness.
+
+PERSONA 2 – Mo Rodriguez (Edge User)
+Context. User with accessibility needs & heightened sensitivity to uncertainty. Mo relies
+on explicit explanations and consistent behavior to build trust in automated systems.
+Behaviors.
+• Carefully reviews outputs and seeks explanations for system decisions.
+• Performs frequent updates (e.g., snoozing reminders or cancelling
+registrations).
+• Experiences stress when outcomes appear arbitrary or unexplained.
+Needs.
+• Deterministic system behavior under ties or conflicting conditions.
+• Clear explanations when reminders are moved, skipped, or when waitlist
+promotions occur.
+• Explicitly handle edge cases instead of silent failure.
+Pain Points.
+• Not understanding why the system changed or rejected an action.
+• Silent failures or dropped reminders/requests.
+• Inconsistent responses across repeated or boundary scenarios.
+
+These are the constraints I derived from the persona's:
+
+C1
+Persona: Jane
+Persona attribute: Prefers ordering of system outputs
+Attribute type: Need
+Operationalization: Converted into constraint
+Derived Constraint (if converted): The system must return valid time slots in a chronological way ordered by start_time
+
+Current support level: Fully supported by the Lab 8 system.
+
+C2
+Persona: Jane
+Persona attribute: User expects system to resolve any conflicts automatically
+Attribute type: Behaviour
+Operationalization: Converted into constraint
+Derived Constraint (if converted): The system must return slots that do not conflict with busy intervals or buffer times by itself without requiring any manual changes.
+
+Current support level: Fully supported by the Lab 8 system.
+
+C3
+Persona: Jane
+Persona attribute: User dislikes when system behaves inconsistently when similar inputs are given
+Attribute type: Pain Point
+Operationalization: Converted into constraint
+Derived Constraint (if converted): The system must behave deterministically when similar inputs are provided.
+
+Current support level: Fully supported by the Lab 8 system.
+
+C4
+Persona: Mo
+Persona attribute: Prefers explanation for failure and dislikes silent failure.
+Attribute type: Need
+Operationalization: Converted into constraint
+Derived Constraint (if converted): The system must handle and explain in one sentence the error incase of failure due to invalid values entered, negative values, or conflicting intervals or empty lists outputted.
+
+Current support level: Partially Supported
+
+C5
+Persona: Mo
+Persona attribute: dislikes silent failures or dropped requests
+Attribute type: Pain Point
+Operationalization: Converted into constraint
+Derived Constraint: If no valid slot exists, the system must return an empty list rather than silently behaviour or invalid output
+
+Current support level: Fully supported by Lab 8 system
+
+C6
+Persona: Mo
+Persona attribute: User stresses when outputs appear arbitrary
+Attribute type: Behavior
+Operationalization: Converted into constraint
+Derived Constraint: The system should provide one sentence to explain why a certain output was rejected or why it was accepted.
+Current support level: Not supported by Lab 8 system
+
+These are the Acceptance criteria I designed for the system:
+
+AC1:
+Given working_hours 9:00 to 17:00 and no busy intervals are provided by the user
+When the system is recommending appointment time slots
+Then the system's recommended time slot list begins from 9:00 and the next outputs are chronologically sorted
+Linked Constraint ID(s): C1
+
+AC2:
+Given the same day, working_hours, busy_intervals, duration, buffer_time, candidate_window, and n
+When the system is run twice
+Then both outputs shall be the exact same and in order.
+Linked Constraint ID(s): C1, C5
+
+AC3:
+Given busy intervals 10:30–11:00, 10:00–10:45, 09:30–09:45
+When the system generates slots
+Then no slot returned should overlap the busy intervals even if they are not ordered or are overlapping
+Linked Constraint ID(s): C2, C5
+
+AC4:
+Given working hours 09:00–17:00, candidate window 13:00–15:00, and no busy intervals
+When the system generates slots
+Then every returned slot shall start and finish within the candidate window.
+Linked Constraint ID(s): C2, C5
+
+AC5:
+Given more than N valid time slots are possible
+When the system generates slots
+Then it shall only return the first N slots in a chronological order
+Linked Constraint ID(s): C2, C5
+
+AC6:
+Given an invalid input to the system, such as start times > end times, or values below 0 for meeting duration or N
+When the system generates slots
+Then system must return error, with the error explained in a sentence.
+Linked Constraint ID(s): C6
+
+AC7:
+Given working hours of 9:00-12:00 and busy interval of 9:20-11:40 and meeting duration of 25 minutes
+When the system generates slots
+Then the system must return an empty list, as no time slot is possible or will conflict with the busy interval.
+Linked Constraint ID(s): C2, C3, C4
+
+AC8:
+Given Buffer time interval of 13:00-14:00
+When the system generates slots
+Then the system must make sure that no slots generated conflict with the buffer time intervals.
+
+
+Can you review all this specifications and identify any possible issues such as : Missing constraints, ambiguous requirements, unhandled edge cases?	]
+
+
+Response summary: [   
+
+The specifications that were initially pasted into the LLM were clear but had ambiguities and some missing constraints such as slot resolution, 
+making sure buffer is well defined, normalization of the intervals, and boundary rules. There were also some acceptance criteria mismatches and edge cases.
+GPT also provided some fixes to them and made sure that the document was more clear and concise than before. 
+
+]
+
+My decision: Accept and make changes to the requirements and acceptance criterias.
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Prompt 2: [
+
+What is the implementation of this code in python. How should I implement it, and improve the system to satisfy the constraints.
+
+This is what I have so far on the main logic:
+
+if working_hours.start >= working_hours.end:        #if start<end for working hours window constraint
+        raise ValueError("working_hours Start Time must be lesser than the End Time !")
+
+    if duration <= timedelta(0):                # duration must not be less than or wqual to 0
+        raise ValueError("duration must be greater than 0 !")
+
+    if n < 0:                                   # n must be greater than equal to 0
+        raise ValueError("n must be >= 0 !")
+
+    if buffer < timedelta(0):                   # handle the buffer time consraint
+        raise ValueError("buffer must be >= 0 !")
+
+    if candidate_window is not None and candidate_window.start >= candidate_window.end:
+        raise ValueError("candidate_window Start time must be earlier than End time !")
+
+    for interval in busy_intervals:             #checking for any error in the busy intervals list
+        if interval.start >= interval.end:
+            raise ValueError("busy interval start must be earlier than end")
+
+    if n == 0:                          # if n is 0, then empty list returned
+        return []
+
+    def combine(t: time) -> datetime:
+        return datetime.combine(day, t)
+
+    work_start = combine(working_hours.start)       #working hour window
+    work_end = combine(working_hours.end)
+
+    start_limit = work_start
+    end_limit = work_end
+
+    if candidate_window is not None:        #handlling the limits for the returning time slots
+        start_limit = max(start_limit, combine(candidate_window.start))
+        end_limit = min(end_limit, combine(candidate_window.end))
+
+    if start_limit >= end_limit:
+        return []
+
+    latest_start = end_limit - duration
+    if latest_start < start_limit:
+        return []
+
+    busy_ranges = []
+    for interval in busy_intervals:
+        start_dt = combine(interval.start) - buffer
+        end_dt = combine(interval.end) + buffer
+        busy_ranges.append((start_dt, end_dt))
+
+    merged_busy = merge_intervals(busy_ranges)
+
+    slots = []
+    step = timedelta(minutes=1)
+    current = start_limit
+
+    while current <= latest_start and len(slots) < n:
+        slot_end = current + duration
+        conflict = False
+
+        for busy_start, busy_end in merged_busy:
+            if current < busy_end and busy_start < slot_end:
+                conflict = True
+                break
+
+        if not conflict:
+            slots.append(Slot(start_time=current.time()))
+
+        current += step
+
+    return slots
+
+
+]
+
+Response summary: [   
+
+The LLM provided me with the things that were already correct with the code and all the constraints and requirements this original code was completing. However, it noticed
+mulitple issues with the code where it was not able to complete the constraints and requirements for, especially with the new added and modified requirements due to the personas.
+
+The llm provided with many implementations for the logic and that helped me decide what all I can use from it to help improve the code, make it look cleaner, and more concise
+and make sure it fulfills all the constraints, and requirements from the document
+
+]
+
+My decision: Accept and make changes to the code and logic.
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+Prompt 3 [
+
+How would you implement any testing for the system code, where at least two of these can cover edge cases and where each test must verify atleast one constraint from the specification. 
+
+]
+
+Response summary: [   
+
+The LLM provided me with a long explanation on what exactly must be tested from the constraints and specs that I had previously provided in the previous prompts. It gave me how I can 
+implement them in python and what kind of values I can test a certaint case with so that I can properly check the edge cases of the system.
+
+Using this as a brainstorming idea, I was able to come up with some new test cases for the new requirements and constraints.
+
+]
+
+My decision: Accept and make changes to the test and logic.
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+
+Prompt 4 [
+
+I was able to correctly implement testing for invalid inputs and some basic scheduling examples. How would you implement something like candidate window restriction and chronological ordering?
+
+]
+
+Response summary: [   
+
+Gpt replied with some example timings I can use to test the two constraints that I was confused about how I can implement them. These examples helped clarfiy exactly how I can
+test the specific constraints. 
+
+It also explained why the examples were good and help verify the requirements properly.
+
+]
+
+My decision: Accept and make changes to the test and logic.
 
