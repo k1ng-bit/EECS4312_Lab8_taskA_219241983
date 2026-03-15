@@ -1,0 +1,46 @@
+Prompt 1: [
+
+PERSONA 1 - Jane Adams (Primary User)
+Context. Busy professional managing daily routines and commitments who relies on
+automation to reduce cognitive load. Jane uses digital tools for medication reminders
+and event registrations and expects them to work reliably without manual oversight.
+Behaviors.
+• Acts quickly and rarely revisits system suggestions.
+• Trusts the system to resolve conflicts and enforce rules automatically.
+• Prefers concise outputs and minimal interaction when making decisions.
+Needs.
+• Predictable and stable ordering of reminders or system decisions.
+• Automatic handling of conflicts (e.g., reminder collisions or waitlist promotion).
+• Limited notification or information overload.
+Pain Points.
+• Receiving too many notifications or duplicate system messages.
+• Systems behave inconsistently in similar situations.
+• Having to manually resolve conflicts or check system correctness
+
+
+PERSONA 2 – Mo Rodriguez (Edge User)
+Context. User with accessibility needs & heightened sensitivity to uncertainty. Mo relies
+on explicit explanations and consistent behavior to build trust in automated systems.
+Behaviors.
+• Carefully reviews outputs and seeks explanations for system decisions.
+• Performs frequent updates (e.g., snoozing reminders or cancelling
+registrations).
+• Experiences stress when outcomes appear arbitrary or unexplained.
+Needs.
+• Deterministic system behavior under ties or conflicting conditions.
+• Clear explanations when reminders are moved, skipped, or when waitlist
+promotions occur.
+• Explicitly handle edge cases instead of silent failure.
+Pain Points.
+• Not understanding why the system changed or rejected an action.
+• Silent failures or dropped reminders/requests.
+• Inconsistent responses across repeated or boundary scenarios.
+
+
+This persona was provided to me. what does the persona mean by the pain point being receiving too many notifications and inconsistent behaviour? The system i am making is a meeting Appointment Slot recommender. Also are there any hidden constraints that can be made from these personas
+
+]
+
+Purpose: This prompt was asked as I was confused about one of the pain points for the persona Jane. Another reason this prompt was asked was so that I could see if I missed any constraints, or edge cases and if I did, brainstorm new constraints, requirements or edge cases. 
+
+Response summary: the LLM clarified the meaning of the pain point I was confused by and provided me with examples to help me understand what it meant. the LLM gave me a list of hidden constraints and edge cases it found, which did help me form 2 more constraints that I missed when I first read the persona descriptions. It also helped me brainstorm more edge cases for the system.
